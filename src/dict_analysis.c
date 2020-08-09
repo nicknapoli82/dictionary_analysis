@@ -43,7 +43,14 @@ int main(int argc, char *argv[]) {
 	}
     }
 
+    unsigned int average_word_length = 0;
+    for(unsigned int i = 0; i < dict_words; i++) {
+	average_word_length += strlen(word_pointers[i]);
+    }
+    average_word_length = (float)average_word_length / (float)dict_words;
+
     printf("The number of words in the dictionary is %i\n\n", dict_words);
+    printf("The average length of a dictionary word is %i\n\n", average_word_length);
 
     for(int i = 2; i < 45; i++) {
 	printf("There %s %i (%c%f) %s with %i common beginning letters\n",
