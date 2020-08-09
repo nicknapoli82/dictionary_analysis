@@ -16,7 +16,7 @@ typedef struct {
     float        weighted_distribution;
 } table_stats;
 
-#define N 100000
+#define N 500000
 
 void test_hash(char *dict[], unsigned int word_count) {
     bucket *table = calloc(sizeof(bucket), N);
@@ -47,19 +47,16 @@ void test_hash(char *dict[], unsigned int word_count) {
 
     free(table);
 
-    // I'm weighting the distribution against unfilled buckets
-    // So having unfilled buckets is worse than having more collisions
-    // on average.
-    if(t_s.unfilled_buckets == 0) {
-	t_s.weighted_distribution = (float)t_s.most_collisions / t_s.average_lookup;
+    // I'm weighting the distribution
+    // A value closer to 1 is a better use of the table
+    // A value of 0 is a perfect hash function
+    // I believe this is correct
+    float distribution = (float)(word_count - (t_s.total_collisions + t_s.unfilled_buckets));
+    distribution = (float)N / distribution;
+    t_s.weighted_distribution = distribution != 0.0 ? ((float)N / (float)word_count) * distribution : 0.0;
+    if(t_s.weighted_distribution < 1.0) {
+	t_s.weighted_distribution = 1.0 / t_s.weighted_distribution;
     }
-    else {
-	float distribution = (float)(word_count - t_s.total_collisions - t_s.filled_no_collision) / t_s.average_lookup;
-	t_s.weighted_distribution = ((float)t_s.unfilled_buckets / (float)N) * distribution;
-	printf("distribution is %f\n", (float)t_s.unfilled_buckets / (float)N);
-	t_s.weighted_distribution += t_s.average_lookup;
-    }
-
     printf("For %i words. The table has\n", word_count);
     printf("%i total collisions\n", t_s.total_collisions);
     printf("%i buckets with length 1\n", t_s.filled_no_collision);
