@@ -17,16 +17,30 @@ typedef struct {
     double       weighted_distribution;
 } table_stats;
 
-#define N (250000)
+#define N (400000)
+
+void run_hash(char *dict[], bucket *table, unsigned int word_count);
+table_stats collect_tStats(bucket *table);
+void print_t_stats(table_stats t_s, unsigned int word_count);
 
 void test_hash(char *dict[], unsigned int word_count) {
     bucket *table = calloc(sizeof(bucket), N);
+    run_hash(dict, table, word_count);
 
+    table_stats t_s = collect_tStats(table);
+    free(table);
+
+    print_t_stats(t_s, word_count);
+}
+
+void run_hash(char *dict[], bucket *table, unsigned int word_count) {
     for(unsigned int i = 0; i < word_count; i++) {
 	unsigned long hash = djb2((unsigned char*)dict[i]);
 	table[hash % N].collisions++;
     }
+}
 
+table_stats collect_tStats(bucket *table) {
     table_stats t_s = {0, 0, 0, 0, 0, 1.0, 0.0};
     for(unsigned int i = 0; i < N; i++) {
 	if(table[i].collisions == 0) {
@@ -47,13 +61,11 @@ void test_hash(char *dict[], unsigned int word_count) {
 	}
     }
 
-    free(table);
-
     // I'm weighting the distribution using useful distribution vs waste
     // Collisions past the first value in a bucket is waste
     // Buckets that are not filled are waste
     // A value closer to 1 is a better use of the table
-    // A value of 1 is a perfect hash function
+    // A value of 1 is the best we are going to get
     // I believe this is correct
     double useful = (double)t_s.filled_no_collision + (double)t_s.filled_with_collision;
     double waste = (double)t_s.total_collisions + (double)t_s.unfilled_buckets;
@@ -61,6 +73,11 @@ void test_hash(char *dict[], unsigned int word_count) {
     t_s.weighted_distribution = t_s.weighted_distribution != 0.0 ? (double)N / t_s.weighted_distribution : 1.0;
     t_s.weighted_distribution = t_s.weighted_distribution > 0 ? t_s.weighted_distribution : t_s.weighted_distribution * -1.0;
     t_s.weighted_distribution = t_s.weighted_distribution < 1 ? 1.0 / t_s.weighted_distribution : t_s.weighted_distribution;
+
+    return t_s;
+}
+
+void print_t_stats(table_stats t_s, unsigned int word_count) {
     printf("For %i words. The table has\n", word_count);
     printf("%i total collisions\n", t_s.total_collisions);
     printf("%i buckets with length 1\n", t_s.filled_no_collision);
@@ -68,5 +85,5 @@ void test_hash(char *dict[], unsigned int word_count) {
     printf("%i unfilled buckets\n", t_s.unfilled_buckets);
     printf("%i is the longest bucket\n", t_s.most_collisions);
     printf("%2f average bucket length\n", t_s.average_lookup);
-    printf("%2f weighted distribution\n", t_s.weighted_distribution);
+    printf("%2f weighted distribution\n", t_s.weighted_distribution);    
 }
