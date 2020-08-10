@@ -30,15 +30,23 @@ int main(int argc, char *argv[]) {
     }
 
     char *word_pointers[word_count];
-
+    unsigned int max_length = 0;
     for(unsigned int i = 0, w = 0; i < f_size; i++, w++) {
+	unsigned int len = 0;
 	word_pointers[w] = &dict[i];
-	while(dict[i] != '\0') i++;
+	while(dict[i] != '\0') {
+	    len++;
+	    i++;
+	}
+	if(len > max_length)
+	    max_length = len;
     }
 
-    int counts[45] = {0};
+    unsigned int counts[max_length];
+    memset(counts, 0, sizeof(unsigned int));
+
     for(unsigned int i = 0; i < word_count - 1; i++) {
-	for(unsigned int w = 2; w < 46; w++) {
+	for(unsigned int w = 2; w < max_length; w++) {
 	    if(strncmp(word_pointers[i], word_pointers[i + 1], w) == 0)
 		counts[w]++;
 	    else break;
@@ -46,23 +54,31 @@ int main(int argc, char *argv[]) {
     }
 
     unsigned int average_word_length = 0;
+    unsigned int len_counts[max_length];
+    memset(len_counts, 0, sizeof(unsigned int));
     for(unsigned int i = 0; i < word_count; i++) {
-	average_word_length += strlen(word_pointers[i]);
+	unsigned int w_len = strlen(word_pointers[i]);
+	average_word_length += w_len;
+	len_counts[w_len]++;
     }
     average_word_length = (float)average_word_length / (float)word_count;
 
     printf("The number of words in the dictionary is %i\n\n", word_count);
     printf("The average length of a dictionary word is %i\n\n", average_word_length);
 
-    for(int i = 2; i < 45; i++) {
-	printf("There %s %i (%c%f) %s with %i common beginning letters\n",
+    for(unsigned int i = 2; i < max_length; i++) {
+	printf("There %s %i (%c%f) %s with %i common beginning letters (%i words)\n",
 	       counts[i] == 1 ? "is" : "are",
 	       counts[i], '%',  ((float)counts[i] / (float)word_count) * 100,
 	       counts[i] == 1 ? "word" : "words",
-	       i);
+	       i,
+	       len_counts[i]);
 	if(counts[i] == 0)
 	    break;
     }
 
     test_hash(word_pointers, word_count);
+
+    // Not that I really care, but we may as well clean things up eh?
+    free(dict);
 }
