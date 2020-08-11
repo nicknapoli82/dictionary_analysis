@@ -43,10 +43,10 @@ int main(int argc, char *argv[]) {
     }
 
     unsigned int counts[max_length];
-    memset(counts, 0, sizeof(unsigned int));
+    memset(counts, 0, sizeof(unsigned int) * max_length);
 
     for(unsigned int i = 0; i < word_count - 1; i++) {
-	for(unsigned int w = 2; w < max_length; w++) {
+	for(unsigned int w = 1; w < max_length; w++) {
 	    if(strncmp(word_pointers[i], word_pointers[i + 1], w) == 0)
 		counts[w]++;
 	    else break;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 
     unsigned int average_word_length = 0;
     unsigned int len_counts[max_length];
-    memset(len_counts, 0, sizeof(unsigned int));
+    memset(len_counts, 0, sizeof(unsigned int) * max_length);
     for(unsigned int i = 0; i < word_count; i++) {
 	unsigned int w_len = strlen(word_pointers[i]);
 	average_word_length += w_len;
@@ -64,9 +64,9 @@ int main(int argc, char *argv[]) {
     average_word_length = (float)average_word_length / (float)word_count;
 
     printf("The number of words in the dictionary is %i\n\n", word_count);
-    printf("The average length of a dictionary word is %i\n\n", average_word_length);
-
-    for(unsigned int i = 2; i < max_length; i++) {
+    printf("The average length of a dictionary word is %i\n", average_word_length);
+    printf("The max word length is %i\n\n", max_length);
+    for(unsigned int i = 1; i < max_length; i++) {
 	printf("There %s %i (%c%f) %s with %i common beginning letters (%i words)\n",
 	       counts[i] == 1 ? "is" : "are",
 	       counts[i], '%',  ((float)counts[i] / (float)word_count) * 100,
